@@ -1,6 +1,6 @@
 {
   "name": "@fjedi/react-router-helpers",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A set of helpers for react-router",
   "main": "dist/index.js",
   "files": [

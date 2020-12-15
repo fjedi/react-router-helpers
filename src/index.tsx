@@ -13,6 +13,16 @@ export const AuthModalContext = createContext({ status: false });
 
 export default ViewerContext;
 
+export const ViewerRoleProvider: React.FC<{ value: ViewerRole }> = ({ value, children }) => (
+  <ViewerRoleContext.Consumer>
+    {(role) => (
+      <ViewerRoleContext.Provider value={role === 'ADMIN' ? role : value}>
+        {children}
+      </ViewerRoleContext.Provider>
+    )}
+  </ViewerRoleContext.Consumer>
+);
+
 export const AuthModalProvider: React.FC = ({ children }) => {
   const [status, setStatus] = useState(false);
   const store = { status, setStatus };
@@ -92,8 +102,8 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
     render,
     ...componentProps
   } = props;
-  const viewer = useContext(ViewerContext);
-  const viewerRole = currentRole || viewer?.role || 'ANONYMOUS';
+  const roleFromContext = useContext(ViewerRoleContext);
+  const viewerRole = currentRole || roleFromContext || 'ANONYMOUS';
   const notAllowed =
     (Array.isArray(allowedRoles) &&
       allowedRoles.length > 0 &&

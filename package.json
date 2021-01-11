@@ -1,6 +1,6 @@
 {
   "name": "@fjedi/react-router-helpers",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A set of helpers for react-router",
   "main": "dist/index.js",
   "files": [
@@ -42,7 +42,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/expect": "24.3.0",
-    "@types/jest": "26.0.19",
+    "@types/jest": "26.0.20",
     "@types/node": "14.14.12",
     "@types/react": "17.0.0",
     "@types/react-router-dom": "5.1.6",

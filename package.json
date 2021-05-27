@@ -17,7 +17,7 @@
     "build": "rollup -c",
     "start": "rollup -c -w",
     "format": "prettier --write \"src/**/*.tsx\"",
-    "prepare": "npm run build",
+    "prepare": "npm run build && husky install",
     "prepublishOnly": "npm run lint",
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
@@ -55,7 +55,7 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.23.3",
     "eslint-plugin-prettier": "3.4.0",
-    "husky": "6.0.0",
+    "husky": "^6.0.0",
     "jest": "27.0.1",
     "lint-staged": "11.0.0",
     "prettier": "2.3.0",
@@ -83,10 +83,5 @@
       "npm run lint:fix",
       "git add"
     ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   }
 }

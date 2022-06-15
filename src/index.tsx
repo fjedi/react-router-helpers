@@ -1,5 +1,6 @@
 //
 import * as React from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import { memo, cloneElement, createContext, useContext, useCallback, useState } from 'react';
 import * as PropTypes from 'prop-types';
 // React
@@ -7,9 +8,13 @@ import { Route, Redirect as ReactRouterRedirect } from 'react-router-dom';
 
 export type ViewerRole = string | null;
 export type ViewerType = { id: string; role: ViewerRole } | null;
-export const ViewerContext: React.Context<ViewerType> = createContext<ViewerType>(null);
+export const ViewerContext = createContext<ViewerType>(null);
 export const ViewerRoleContext: React.Context<ViewerRole> = createContext<ViewerRole>(null);
-export const AuthModalContext = createContext({ status: false });
+
+export const AuthModalContext = createContext<{
+  status: boolean;
+  setStatus?: Dispatch<SetStateAction<boolean>>;
+}>({ status: false });
 
 export default ViewerContext;
 

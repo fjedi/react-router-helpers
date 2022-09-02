@@ -1,10 +1,10 @@
 //
 import * as React from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { memo, cloneElement, createContext, useContext, useCallback, useState } from 'react';
+import { memo, cloneElement, createContext, useContext, useMemo, useState } from 'react';
 import * as PropTypes from 'prop-types';
 // React
-import { Route, Redirect as ReactRouterRedirect } from 'react-router-dom';
+import { Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 
 export type ViewerRole = string | null;
 export type ViewerType = { id: string; role: ViewerRole } | null;
@@ -37,17 +37,19 @@ export const AuthModalProvider: React.FC = ({ children }) => {
 // <Status code="xxx"> component.  Updates the context router's context, which
 // can be used by the server handler to respond to the status on the server.
 const Status: React.FC<{ code: number }> = ({ code, children }) => {
-  const render = useCallback(
-    ({ staticContext }) => {
-      if (staticContext) {
-        staticContext.status = code;
-      }
-      return children;
-    },
-    [code],
+  const context = useMemo(() => ({ code }), [code]);
+
+  const RouteElement: JSX.Element = useMemo(
+    () => (
+      <>
+        {children}
+        <Outlet context={context} />
+      </>
+    ),
+    [context, children],
   );
 
-  return <Route render={render} />;
+  return RouteElement;
 };
 //
 Status.propTypes = {
@@ -58,7 +60,9 @@ Status.propTypes = {
 // it will attempt to proxyify the request to the upstream `webpack-dev-server`.
 // In production, it will issue a hard 404 and render.  In the browser, it will
 // simply render.
-export const NotFound: React.FC = memo(({ children }) => <Status code={404}>{children}</Status>);
+export const NotFound: React.FC = memo(({ children }) => (
+  <Route element={<Status code={404}>{children}</Status>} />
+));
 NotFound.propTypes = { children: PropTypes.node };
 NotFound.defaultProps = { children: null };
 
@@ -66,26 +70,35 @@ NotFound.defaultProps = { children: null };
 // except it sets a 301/302 status code for setting server-side HTTP headers.
 export type RedirectProps = {
   to: string | { pathname?: string; state: { from: string } };
-  from?: string;
   permanent?: boolean;
   push?: boolean;
-  strict?: boolean;
-  exact?: boolean;
+  state?: Record<string, unknown>;
 };
-export const Redirect: React.FC<RedirectProps> = memo(({ to, from, push, permanent }) => (
-  <Status code={permanent ? 301 : 302}>
-    <ReactRouterRedirect to={to} from={from} push={push} />
-  </Status>
-));
+export const Redirect: React.FC<RedirectProps> = memo(({ to, push, permanent, state }) => {
+  const code = useMemo(() => (permanent ? 301 : 302), [permanent]);
+  const RouteElement = useMemo(
+    () => (
+      <Status code={code}>
+        <Navigate to={to} replace={!push} state={state} />
+      </Status>
+    ),
+    [code, to as string, push, state],
+  );
+
+  return <Route element={RouteElement} />;
+});
 
 //
+type RouteComponentProps = {
+  [k: string]: unknown;
+};
 export type RestrictedAreaProps = {
   path?: string;
   exact?: boolean;
   strict?: boolean;
   render?: (a: unknown) => React.Component;
   children?: React.ReactElement;
-  component?: React.ElementType;
+  component?: React.ComponentType<RouteComponentProps>;
   areaType: 'route' | 'block';
   currentRole?: string;
   redirectTo?: string;
@@ -95,7 +108,7 @@ export type RestrictedAreaProps = {
 export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
   const {
     children,
-    path,
+    path: routePath,
     exact,
     strict,
     component: Component,
@@ -107,6 +120,7 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
     render,
     ...componentProps
   } = props;
+
   const roleFromContext = useContext(ViewerRoleContext);
   const viewerRole = currentRole || roleFromContext || 'ANONYMOUS';
   const notAllowed =
@@ -116,35 +130,34 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
     (Array.isArray(restrictedRoles) &&
       restrictedRoles.length > 0 &&
       restrictedRoles.includes(viewerRole));
-  const renderRoute = useCallback((routeProps) => {
-    if (notAllowed) {
-      //
-      return (
-        <Redirect
-          strict
-          exact
-          from={path}
-          to={{
-            pathname: redirectTo,
-            state: { from: routeProps.location },
-          }}
-        />
-      );
-    }
-    return (
-      <Route
-        exact={exact}
-        strict={strict}
-        path={path}
-        component={Component}
-        render={render}
-        {...routeProps}
-      />
-    );
-  }, []);
+
+  const location = useLocation();
+  const state = useMemo(() => ({ from: location }), [location]);
+  const to = useMemo(() => redirectTo ?? '/', [redirectTo]);
+  const path = useMemo(() => routePath ?? '', [routePath]);
+
+  const RouteComponent: React.FC<RouteComponentProps> = useMemo(
+    () => (bypassProps) =>
+      notAllowed || !Component ? (
+        <Redirect to={to} state={state} permanent={!!bypassProps.permanent} />
+      ) : (
+        <Component {...bypassProps} />
+      ),
+    [notAllowed, to, state, Component],
+  );
+
+  const RouteElement = useMemo(
+    () => (
+      <>
+        {!!RouteComponent && <RouteComponent {...componentProps} />}
+        {children}
+      </>
+    ),
+    [RouteComponent, componentProps, children],
+  );
   //
   if (areaType === 'route') {
-    return <Route exact={exact} strict={strict} render={renderRoute} />;
+    return <Route path={path} element={RouteElement} />;
   }
   //
   if (notAllowed) {
@@ -153,8 +166,8 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
   if (children) {
     return cloneElement(children, componentProps);
   }
-  // @ts-ignore
-  return <Component {...componentProps} />;
+
+  return Component ? <Component {...componentProps} /> : null;
 };
 RestrictedArea.propTypes = {
   render: PropTypes.func,

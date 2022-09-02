@@ -86,7 +86,7 @@ export const Redirect: React.FC<RedirectProps> = memo(({ to, push, permanent, st
   );
 
   return <Route element={RouteElement} />;
-});
+}) as React.FC<RedirectProps>;
 
 //
 type RouteComponentProps = {
@@ -138,10 +138,10 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
 
   const RouteComponent: React.FC<RouteComponentProps> = useMemo(
     () => (bypassProps) =>
-      notAllowed || !Component ? (
+      notAllowed ? (
         <Redirect to={to} state={state} permanent={!!bypassProps.permanent} />
       ) : (
-        <Component {...bypassProps} />
+        <>{Component ? <Component {...bypassProps} /> : <Outlet />}</>
       ),
     [notAllowed, to, state, Component],
   );
@@ -149,7 +149,7 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
   const RouteElement = useMemo(
     () => (
       <>
-        {!!RouteComponent && <RouteComponent {...componentProps} />}
+        {RouteComponent && <RouteComponent {...componentProps} />}
         {children}
       </>
     ),
@@ -157,7 +157,11 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
   );
   //
   if (areaType === 'route') {
-    return <Route path={path} element={RouteElement} />;
+    if (Component) {
+      return <Route path={path} element={RouteElement} />;
+    }
+
+    return <Route path={path} />;
   }
   //
   if (notAllowed) {

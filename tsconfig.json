@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "lib",
     "module": "esnext",
     "target": "es5",
     "lib": [
@@ -24,12 +24,14 @@
     "noUnusedParameters": true
   },
   "include": [
-    "src"
+    "src/*",
+    "src/**/*",
   ],
   "exclude": [
     "node_modules",
-    "dist",
+    "lib",
     "example",
     "rollup.config.js"
-  ]
+  ],
+  "typings": ["./index.d.ts", "./dist/index.d.ts", "./lib/index.d.ts"]
 }

@@ -33,8 +33,6 @@ export const AuthModalContext = createContext<{
   setStatus?: Dispatch<SetStateAction<boolean>>;
 }>({ status: false });
 
-export default ViewerContext;
-
 export const ViewerRoleProvider: React.FC<{ value: ViewerRole; children: React.ReactNode }> = ({
   value,
   children,

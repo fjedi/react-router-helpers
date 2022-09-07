@@ -1,10 +1,27 @@
 //
 import * as React from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { memo, cloneElement, createContext, useContext, useMemo, useState } from 'react';
+import {
+  memo,
+  cloneElement,
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import * as PropTypes from 'prop-types';
 // React
-import { Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import {
+  Route,
+  Navigate,
+  Outlet,
+  useLocation,
+  UNSAFE_NavigationContext as NavigationContext,
+} from 'react-router-dom';
+import { History, Transition } from 'history';
+import { Navigator } from 'react-router';
 
 export type ViewerRole = string | null;
 export type ViewerType = { id: string; role: ViewerRole } | null;
@@ -188,3 +205,61 @@ RestrictedArea.defaultProps = {
   strict: false,
   redirectTo: '/login',
 };
+
+export type ExtendNavigator = Navigator & Pick<History, 'block'>;
+export function useBlocker(blocker: (tx: Transition) => void, when = true) {
+  const { navigator } = useContext(NavigationContext);
+
+  useEffect(() => {
+    if (!when) return;
+
+    const unblock = (navigator as ExtendNavigator).block((tx) => {
+      const autoUnblockingTx = {
+        ...tx,
+        retry() {
+          unblock();
+          tx.retry();
+        },
+      };
+
+      blocker(autoUnblockingTx);
+    });
+
+    return unblock;
+  }, [navigator, blocker, when]);
+}
+
+export function usePrompt(message: string, when = true) {
+  const blocker = useCallback(
+    (tx: Transition) => {
+      if (window.confirm(message)) tx.retry();
+    },
+    [message],
+  );
+
+  useBlocker(blocker, when);
+}
+
+export { RouteMatch, RouterProps } from 'react-router';
+
+export {
+  useNavigate,
+  useNavigationType,
+  useRoutes,
+  useHref,
+  useOutlet,
+  useLinkClickHandler,
+  useSearchParams,
+  useOutletContext,
+  useInRouterContext,
+  useResolvedPath,
+  Route,
+  Routes,
+  useLocation,
+  useMatch,
+  useParams,
+  BrowserRouterProps,
+  BrowserRouter,
+  Link,
+  NavLink,
+} from 'react-router-dom';

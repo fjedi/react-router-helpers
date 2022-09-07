@@ -22,6 +22,7 @@ module.exports = {
   rules: {
     'no-debugger': 'off',
     'no-console': 1,
+    'consistent-return': 1,
     // note you must disable the base rule as it can report incorrect errors
     'lines-between-class-members': 'off',
     '@typescript-eslint/lines-between-class-members': 'off',

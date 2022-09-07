@@ -35,7 +35,10 @@ export const AuthModalContext = createContext<{
 
 export default ViewerContext;
 
-export const ViewerRoleProvider: React.FC<{ value: ViewerRole }> = ({ value, children }) => (
+export const ViewerRoleProvider: React.FC<{ value: ViewerRole; children: React.ReactNode }> = ({
+  value,
+  children,
+}) => (
   <ViewerRoleContext.Consumer>
     {(role) => (
       <ViewerRoleContext.Provider value={role === 'ADMIN' ? role : value}>
@@ -45,7 +48,7 @@ export const ViewerRoleProvider: React.FC<{ value: ViewerRole }> = ({ value, chi
   </ViewerRoleContext.Consumer>
 );
 
-export const AuthModalProvider: React.FC = ({ children }) => {
+export const AuthModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [status, setStatus] = useState(false);
   const store = { status, setStatus };
   return <AuthModalContext.Provider value={store}>{children}</AuthModalContext.Provider>;
@@ -53,7 +56,7 @@ export const AuthModalProvider: React.FC = ({ children }) => {
 
 // <Status code="xxx"> component.  Updates the context router's context, which
 // can be used by the server handler to respond to the status on the server.
-const Status: React.FC<{ code: number }> = ({ code, children }) => {
+const Status: React.FC<{ code: number; children?: React.ReactNode }> = ({ code, children }) => {
   const context = useMemo(() => ({ code }), [code]);
 
   const RouteElement: JSX.Element = useMemo(
@@ -77,10 +80,9 @@ Status.propTypes = {
 // it will attempt to proxyify the request to the upstream `webpack-dev-server`.
 // In production, it will issue a hard 404 and render.  In the browser, it will
 // simply render.
-export const NotFound: React.FC = memo(({ children }) => (
+export const NotFound: React.FC<{ children?: React.ReactNode }> = memo(({ children }) => (
   <Route element={<Status code={404}>{children}</Status>} />
 ));
-NotFound.propTypes = { children: PropTypes.node };
 NotFound.defaultProps = { children: null };
 
 // <Redirect> component. Mirrors React Router's component by the same name,

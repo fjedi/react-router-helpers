@@ -15,10 +15,10 @@ const commonOutputOptions = {
   strict: false,
 };
 const commonPluginsHead = [
-  replace({
-    'process.env.NODE_ENV': JSON.stringify('production'),
-    preventAssignment: true,
-  }),
+  // replace({
+  //   'process.env.NODE_ENV': JSON.stringify('production'),
+  //   preventAssignment: true,
+  // }),
   // Preferably set as first plugin.
   peerDepsExternal(),
 ];

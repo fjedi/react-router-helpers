@@ -3,7 +3,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import { terser } from 'rollup-plugin-terser';
-// import replace from '@rollup/plugin-replace';
+import replace from '@rollup/plugin-replace';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
 //
 import pkg from './package.json';
@@ -15,21 +15,14 @@ const commonOutputOptions = {
   strict: false,
 };
 const commonPluginsHead = [
-  // replace({
-  //   'process.env.NODE_ENV': JSON.stringify('production'),
-  //   preventAssignment: true,
-  // }),
+  replace({
+    'process.env.NODE_ENV': JSON.stringify('production'),
+    preventAssignment: true,
+  }),
   // Preferably set as first plugin.
   peerDepsExternal(),
 ];
-const commonPluginsMiddle = [
-  commonjs({
-    // namedExports: {
-    //   'node_modules/subscriptions-transport-ws/dist/index.js': ['SubscriptionClient'],
-    // },
-  }),
-  typescript({ objectHashIgnoreUnknownHack: false }),
-];
+const commonPluginsMiddle = [commonjs(), typescript({ objectHashIgnoreUnknownHack: false })];
 
 export default [
   {

@@ -243,6 +243,7 @@ export function usePrompt(message: string, when = true) {
 export { RouteMatch, RouterProps } from 'react-router';
 
 export {
+  Navigate,
   useNavigate,
   useNavigationType,
   useRoutes,

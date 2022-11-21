@@ -109,11 +109,14 @@ export const Redirect: React.FC<RedirectProps> = memo(({ to, push, permanent, st
 type RouteComponentProps = {
   [k: string]: unknown;
 };
+
+export type CurrentRole = ViewerRole | 'ANONYMOUS';
+
 export type RestrictedAreaProps = {
   areaType: 'route' | 'block';
   children?: React.ReactElement;
   component?: React.ComponentType<RouteComponentProps>;
-  currentRole?: string;
+  currentRole?: CurrentRole;
   redirectTo?: string;
   restrictedRoles?: string[];
   allowedRoles?: string[];
@@ -132,7 +135,7 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
   } = props;
 
   const roleFromContext = useContext(ViewerRoleContext);
-  const viewerRole = currentRole || roleFromContext || 'ANONYMOUS';
+  const viewerRole: CurrentRole = currentRole || roleFromContext || 'ANONYMOUS';
   const notAllowed =
     (Array.isArray(allowedRoles) &&
       allowedRoles.length > 0 &&

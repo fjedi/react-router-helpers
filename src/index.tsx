@@ -110,31 +110,24 @@ type RouteComponentProps = {
   [k: string]: unknown;
 };
 export type RestrictedAreaProps = {
-  path?: string;
-  exact?: boolean;
-  strict?: boolean;
-  render?: (a: unknown) => React.Component;
+  areaType: 'route' | 'block';
   children?: React.ReactElement;
   component?: React.ComponentType<RouteComponentProps>;
-  areaType: 'route' | 'block';
   currentRole?: string;
   redirectTo?: string;
   restrictedRoles?: string[];
   allowedRoles?: string[];
 };
+// @ts-ignore
 export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
   const {
     children,
-    path: routePath,
-    exact,
-    strict,
     component: Component,
     areaType,
     currentRole,
     redirectTo,
     restrictedRoles,
     allowedRoles,
-    render,
     ...componentProps
   } = props;
 
@@ -147,38 +140,14 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
     (Array.isArray(restrictedRoles) &&
       restrictedRoles.length > 0 &&
       restrictedRoles.includes(viewerRole));
-
   const location = useLocation();
-  const state = useMemo(() => ({ from: location }), [location]);
   const to = useMemo(() => redirectTo ?? '/', [redirectTo]);
-  const path = useMemo(() => routePath ?? '', [routePath]);
-
-  const RouteComponent: React.FC<RouteComponentProps> = useMemo(
-    () => (bypassProps) =>
-      notAllowed ? (
-        <Redirect to={to} state={state} permanent={!!bypassProps.permanent} />
-      ) : (
-        <>{Component ? <Component {...bypassProps} /> : <Outlet />}</>
-      ),
-    [notAllowed, to, state, Component],
-  );
-
-  const RouteElement = useMemo(
-    () => (
-      <>
-        {RouteComponent && <RouteComponent {...componentProps} />}
-        {children}
-      </>
-    ),
-    [RouteComponent, componentProps, children],
-  );
   //
   if (areaType === 'route') {
-    if (Component) {
-      return <Route path={path} element={RouteElement} />;
+    if (notAllowed) {
+      return <Navigate to={to} state={{ from: location }} replace />;
     }
-
-    return <Route path={path} />;
+    return children;
   }
   //
   if (notAllowed) {
@@ -191,18 +160,9 @@ export const RestrictedArea: React.FC<RestrictedAreaProps> = (props) => {
   return Component ? <Component {...componentProps} /> : null;
 };
 RestrictedArea.propTypes = {
-  render: PropTypes.func,
-  exact: PropTypes.bool,
-  strict: PropTypes.bool,
-  path: PropTypes.string,
   redirectTo: PropTypes.string,
 };
 RestrictedArea.defaultProps = {
-  currentRole: undefined,
-  render: undefined,
-  path: undefined,
-  exact: false,
-  strict: false,
   redirectTo: '/login',
 };
 
